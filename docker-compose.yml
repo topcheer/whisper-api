@@ -1,0 +1,13 @@
+services:
+  whisper-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - whisper-cache:/root/.cache/whisper
+    environment:
+      - DEFAULT_MODEL=turbo
+    restart: unless-stopped
+
+volumes:
+  whisper-cache:
