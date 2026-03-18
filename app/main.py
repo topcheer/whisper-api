@@ -5,8 +5,9 @@ import time
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", None)
 
 
 @app.post("/v1/audio/transcriptions")
+@app.post("/audio/transcriptions")
 async def transcriptions(
     file: UploadFile = File(...),
     model: str = Form("turbo"),
