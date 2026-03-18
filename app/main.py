@@ -20,39 +20,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+WHISPER_MODEL = "turbo"
 WHISPER_MODEL_DIR = os.getenv("WHISPER_MODEL_DIR", "/root/.cache/whisper")
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "turbo")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", None)
-
-MODEL_MAP = {
-    "tiny": "tiny",
-    "tiny.en": "tiny.en",
-    "base": "base",
-    "base.en": "base.en",
-    "small": "small",
-    "small.en": "small.en",
-    "medium": "medium",
-    "medium.en": "medium.en",
-    "large": "large",
-    "large-v1": "large-v1",
-    "large-v2": "large-v2",
-    "large-v3": "large-v3",
-    "large-v3-turbo": "turbo",
-    "turbo": "turbo",
-}
 
 
 @app.post("/v1/audio/transcriptions")
 async def transcriptions(
     file: UploadFile = File(...),
-    model: str = Form(DEFAULT_MODEL),
+    model: str = Form("turbo"),
     language: str = Form(None),
     prompt: str = Form(None),
     response_format: str = Form("json"),
     temperature: str = Form("0"),
     timestamp_granularities: str = Form(None),
 ):
-    whisper_model = MODEL_MAP.get(model, model)
 
     suffix = Path(file.filename).suffix if file.filename else ".wav"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -65,7 +47,7 @@ async def transcriptions(
         cmd = [
             "whisper",
             tmp_path,
-            "--model", whisper_model,
+            "--model", WHISPER_MODEL,
             "--model_dir", WHISPER_MODEL_DIR,
             "--output_format", "json",
             "--task", "transcribe",
@@ -110,7 +92,7 @@ async def transcriptions(
                 "id": f"whisper-{int(time.time())}",
                 "object": "whisper.result",
                 "created": int(time.time()),
-                "model": model,
+                "model": WHISPER_MODEL,
                 "data": data,
                 "processing_time": round(elapsed, 2),
             }
@@ -122,7 +104,7 @@ async def transcriptions(
                 "id": f"whisper-{int(time.time())}",
                 "object": "whisper.result",
                 "created": int(time.time()),
-                "model": model,
+                "model": WHISPER_MODEL,
                 "text": full_text.strip(),
             }
     finally:
@@ -134,14 +116,10 @@ async def transcriptions(
 
 @app.get("/v1/models")
 async def list_models():
-    models = []
-    for name in MODEL_MAP:
-        models.append({
-            "id": name,
-            "object": "model",
-            "owned_by": "openai",
-        })
-    return {"object": "list", "data": models}
+    return {
+        "object": "list",
+        "data": [{"id": WHISPER_MODEL, "object": "model", "owned_by": "openai"}],
+    }
 
 
 @app.get("/health")

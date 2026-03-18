@@ -16,6 +16,5 @@ COPY app/ ./app/
 EXPOSE 8000
 
 ENV WHISPER_MODEL_DIR=/root/.cache/whisper
-ENV DEFAULT_MODEL=turbo
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
