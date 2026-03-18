@@ -84,10 +84,31 @@ curl -X POST http://localhost:8090/v1/audio/transcriptions \
 | `/v1/models` | GET | List available models |
 | `/health` | GET | Health check |
 
+## Authentication
+
+Set `API_KEY_ENABLED=true` in docker-compose.yml to enable API key authentication.
+
+A random API key will be generated on each startup and printed in the logs:
+
+```
+docker compose logs | grep "API key"
+```
+
+Requests must include the key in the `Authorization` header:
+
+```bash
+curl -X POST http://localhost:8090/v1/audio/transcriptions \
+  -H "Authorization: Bearer <your-api-key>" \
+  -F "file=@audio.wav"
+```
+
+The `/health` endpoint is exempt from authentication.
+
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `API_KEY_ENABLED` | `false` | Enable API key authentication |
 | `WHISPER_MODEL_DIR` | `/root/.cache/whisper` | Model cache directory |
 | `DEFAULT_LANGUAGE` | (empty) | Default language, auto-detect if empty |
 
@@ -193,10 +214,31 @@ curl -X POST http://localhost:8090/v1/audio/transcriptions \
 | `/v1/models` | GET | 查看可用模型 |
 | `/health` | GET | 健康检查 |
 
+## API Key 认证
+
+在 docker-compose.yml 中设置 `API_KEY_ENABLED=true` 开启 API Key 认证。
+
+每次启动时会随机生成 API Key 并打印到日志中：
+
+```
+docker compose logs | grep "API key"
+```
+
+请求时需要在 `Authorization` 头中携带 Key：
+
+```bash
+curl -X POST http://localhost:8090/v1/audio/transcriptions \
+  -H "Authorization: Bearer <your-api-key>" \
+  -F "file=@audio.wav"
+```
+
+`/health` 接口不受认证限制。
+
 ## 环境变量
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
+| `API_KEY_ENABLED` | `false` | 是否开启 API Key 认证 |
 | `WHISPER_MODEL_DIR` | `/root/.cache/whisper` | 模型缓存目录 |
 | `DEFAULT_LANGUAGE` | 空 | 默认语言，空则自动检测 |
 

@@ -1,4 +1,5 @@
 import os
+import secrets
 import subprocess
 import tempfile
 import time
@@ -7,10 +8,13 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+API_KEY_ENABLED = os.getenv("API_KEY_ENABLED", "false").lower() == "true"
+API_KEY = secrets.token_urlsafe(32) if API_KEY_ENABLED else None
 
 app = FastAPI(title="Whisper API", version="1.0.0")
 
@@ -24,6 +28,19 @@ app.add_middleware(
 WHISPER_MODEL = "turbo"
 WHISPER_MODEL_DIR = os.getenv("WHISPER_MODEL_DIR", "/root/.cache/whisper")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", None)
+
+
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    if API_KEY and request.url.path not in ("/health", "/docs", "/openapi.json"):
+        auth = request.headers.get("Authorization", "")
+        if auth != f"Bearer {API_KEY}":
+            return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
+    return await call_next(request)
+
+
+if API_KEY:
+    logger.info("API key enabled: %s", API_KEY)
 
 
 @app.post("/v1/audio/transcriptions")
