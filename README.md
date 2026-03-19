@@ -14,6 +14,35 @@ docker compose logs -f
 
 The service will be available at `http://localhost:8090`.
 
+## Expose via Tunnel
+
+Set `TUNNEL_MODE` in docker-compose.yml to expose the service publicly.
+
+### Tailscale Funnel
+
+1. Get an auth key from [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys) (check "Reusable" and enable Funnel)
+2. Configure in docker-compose.yml:
+
+```yaml
+environment:
+  - TUNNEL_MODE=tailscale
+  - TS_AUTHKEY=tskey-auth-xxxxx
+```
+
+3. First run will print an authorization link in the logs. Open it to enable Funnel on your tailnet (one-time only)
+4. The public URL will be printed in the logs on subsequent starts
+
+### Cloudflare Anonymous Tunnel
+
+No account or token needed. Just set the mode:
+
+```yaml
+environment:
+  - TUNNEL_MODE=cloudflare
+```
+
+A random `*.trycloudflare.com` URL will be generated and printed in the logs on each startup.
+
 ## OpenClaw Integration
 
 Replace `{WHISPER_URL}` with your actual deployment address (e.g. `http://192.168.31.105:8090`):
@@ -109,6 +138,8 @@ The `/health` endpoint is exempt from authentication.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `API_KEY_ENABLED` | `false` | Enable API key authentication |
+| `TUNNEL_MODE` | `none` | Tunnel mode: `none`, `tailscale`, `cloudflare` |
+| `TS_AUTHKEY` | (empty) | Tailscale auth key (required for tailscale mode) |
 | `WHISPER_MODEL_DIR` | `/root/.cache/whisper` | Model cache directory |
 | `DEFAULT_LANGUAGE` | (empty) | Default language, auto-detect if empty |
 
@@ -117,9 +148,10 @@ The `/health` endpoint is exempt from authentication.
 ```
 whisper-api/
 ├── app/
-│   └── main.py          # FastAPI application
+│   └── main.py              # FastAPI application
 ├── Dockerfile
 ├── docker-compose.yml
+├── entrypoint.sh            # Startup script with tunnel support
 ├── requirements.txt
 └── README.md
 ```
@@ -143,6 +175,35 @@ docker compose logs -f
 ```
 
 服务启动后访问 `http://localhost:8090`。
+
+## 通过隧道暴露服务
+
+在 docker-compose.yml 中设置 `TUNNEL_MODE` 即可将服务暴露到公网。
+
+### Tailscale Funnel
+
+1. 从 [Tailscale 管理后台](https://login.tailscale.com/admin/settings/keys) 获取 Auth Key（勾选"可复用"并启用 Funnel）
+2. 在 docker-compose.yml 中配置：
+
+```yaml
+environment:
+  - TUNNEL_MODE=tailscale
+  - TS_AUTHKEY=tskey-auth-xxxxx
+```
+
+3. 首次启动时日志中会打印授权链接，打开链接在管理后台启用 Funnel（仅需一次）
+4. 后续启动公网地址会打印到日志中
+
+### Cloudflare 匿名隧道
+
+无需账号或 Token，只需设置模式：
+
+```yaml
+environment:
+  - TUNNEL_MODE=cloudflare
+```
+
+每次启动会自动生成一个随机的 `*.trycloudflare.com` 地址并打印到日志中。
 
 ## 接入 OpenClaw
 
@@ -239,6 +300,8 @@ curl -X POST http://localhost:8090/v1/audio/transcriptions \
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
 | `API_KEY_ENABLED` | `false` | 是否开启 API Key 认证 |
+| `TUNNEL_MODE` | `none` | 隧道模式：`none`、`tailscale`、`cloudflare` |
+| `TS_AUTHKEY` | 空 | Tailscale 认证密钥（tailscale 模式必填） |
 | `WHISPER_MODEL_DIR` | `/root/.cache/whisper` | 模型缓存目录 |
 | `DEFAULT_LANGUAGE` | 空 | 默认语言，空则自动检测 |
 
@@ -247,9 +310,10 @@ curl -X POST http://localhost:8090/v1/audio/transcriptions \
 ```
 whisper-api/
 ├── app/
-│   └── main.py          # FastAPI 应用
+│   └── main.py              # FastAPI 应用
 ├── Dockerfile
 ├── docker-compose.yml
+├── entrypoint.sh            # 启动脚本（含隧道支持）
 ├── requirements.txt
 └── README.md
 ```

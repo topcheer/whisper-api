@@ -8,6 +8,11 @@ services:
     environment:
       - DEFAULT_LANGUAGE=
       # - API_KEY_ENABLED=true
+      # Tunnel mode: none (default), tailscale, cloudflare
+      # - TUNNEL_MODE=tailscale
+      # - TUNNEL_MODE=cloudflare
+      # Tailscale: set auth key from https://login.tailscale.com/admin/settings/keys
+      # - TS_AUTHKEY=tskey-auth-xxxxx
     restart: unless-stopped
 
 volumes:
