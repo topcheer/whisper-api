@@ -4,6 +4,14 @@ OpenAI-compatible speech-to-text API powered by OpenAI Whisper CLI.
 
 ## Quick Start
 
+### Use pre-built image
+
+```bash
+docker run -d -p 8090:8000 --name whisper-api ggai/whisper-api
+```
+
+### Build from source
+
 ```bash
 # Build and start
 docker compose up -d --build
@@ -165,6 +173,14 @@ whisper-api/
 基于 OpenAI Whisper CLI 的 OpenAI 兼容语音转文字 API 服务。
 
 ## 快速开始
+
+### 使用预构建镜像
+
+```bash
+docker run -d -p 8090:8000 --name whisper-api ggai/whisper-api
+```
+
+### 从源码构建
 
 ```bash
 # 构建并启动
